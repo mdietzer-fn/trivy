@@ -50,15 +50,12 @@ func (p *Parser) Parse(r xio.ReadSeekerAt) ([]ftypes.Package, []ftypes.Dependenc
 	var pkgs []ftypes.Package
 	var deps []ftypes.Dependency
 	for _, pkg := range lockfile.Packages {
-		if pkg.Category == "dev" {
-			continue
-		}
-
 		pkgID := packageID(pkg.Name, pkg.Version)
 		pkgs = append(pkgs, ftypes.Package{
 			ID:      pkgID,
 			Name:    pkg.Name,
 			Version: pkg.Version,
+			Dev:     pkg.Category == "dev",
 		})
 
 		dependsOn := p.parseDependencies(pkg.Dependencies, pkgVersions)
@@ -77,9 +74,6 @@ func (p *Parser) Parse(r xio.ReadSeekerAt) ([]ftypes.Package, []ftypes.Dependenc
 func (p *Parser) parseVersions(lockfile Lockfile) map[string][]string {
 	pkgVersions := make(map[string][]string)
 	for _, pkg := range lockfile.Packages {
-		if pkg.Category == "dev" {
-			continue
-		}
 		if vers, ok := pkgVersions[pkg.Name]; ok {
 			pkgVersions[pkg.Name] = append(vers, pkg.Version)
 		} else {
